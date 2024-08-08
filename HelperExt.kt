@@ -41,7 +41,7 @@ import java.io.Serializable
 //-------------Coroutine----------------
 /**
  * This is the Main thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun LifecycleOwner.mainThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.Main) { block() }
@@ -49,7 +49,7 @@ fun LifecycleOwner.mainThread(block: CoroutineScope.() -> Unit) {
 
 /**
  * This is the IO thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun LifecycleOwner.ioThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.IO) { block() }
@@ -57,7 +57,7 @@ fun LifecycleOwner.ioThread(block: CoroutineScope.() -> Unit) {
 
 /**
  * This is the Default thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun LifecycleOwner.defaultThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.Default) { block() }
@@ -65,7 +65,7 @@ fun LifecycleOwner.defaultThread(block: CoroutineScope.() -> Unit) {
 
 /**
  * This is the Unconfined thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun LifecycleOwner.unconfinedThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.Unconfined) { block() }
@@ -74,7 +74,7 @@ fun LifecycleOwner.unconfinedThread(block: CoroutineScope.() -> Unit) {
 
 /**
  * This is the Main thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun ViewModel.mainThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.Main) { block() }
@@ -82,7 +82,7 @@ fun ViewModel.mainThread(block: CoroutineScope.() -> Unit) {
 
 /**
  * This is the IO thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun ViewModel.ioThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.IO) { block() }
@@ -90,7 +90,7 @@ fun ViewModel.ioThread(block: CoroutineScope.() -> Unit) {
 
 /**
  * This is the Default thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun ViewModel.defaultThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.Default) { block() }
@@ -98,7 +98,7 @@ fun ViewModel.defaultThread(block: CoroutineScope.() -> Unit) {
 
 /**
  * This is the Unconfined thread coroutine scope for lifecycleOwner
- * @param block - code block to run on this thread
+ * @param block -> code block to run on this thread
  */
 fun ViewModel.unconfinedThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.Unconfined) { block() }
@@ -109,9 +109,9 @@ fun ViewModel.unconfinedThread(block: CoroutineScope.() -> Unit) {
 //-------------Intent----------------
 /**
  * To get serializable value from Intent
- * @param key - key to get value
+ * @param key -> key to get value
  *
- * @return T - Serializable extended value
+ * @return T -> Serializable extended value
  */
 inline fun <reified T: Serializable> Intent.getSerializable(key: String): T? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -123,9 +123,9 @@ inline fun <reified T: Serializable> Intent.getSerializable(key: String): T? {
 
 /**
  * To put Bitmap in Intent
- * @param context - Context
- * @param key - key to put Bitmap
- * @param bitmap - Bitmap to put
+ * @param context -> Context
+ * @param key -> key to put Bitmap
+ * @param bitmap -> Bitmap to put
  *
  * @return Intent object
  */
@@ -143,8 +143,8 @@ fun Intent.putBitmapExtra(context: Context, key: String, bitmap: Bitmap): Intent
 
 /**
  * To get Bitmap from Intent
- * @param context - Context
- * @param key - key to get Bitmap from
+ * @param context -> Context
+ * @param key -> key to get Bitmap from
  *
  * @return Bitmap if exist otherwise null
  */
@@ -162,10 +162,10 @@ fun Intent.getBitmapExtra(context: Context, key: String): Bitmap? {
 //-------------View----------------
 /**
  * To set Alpha animation
- * @param alpha - alpha value
- * @param duration - animation duration
- * @param startDelay - delay before start
- * @param interpolator - animation interpolator style
+ * @param alpha -> alpha value
+ * @param duration -> animation duration
+ * @param startDelay -> delay before start
+ * @param interpolator -> animation interpolator style
  *
  * @return this View
  * @see startAnimate to start animation
@@ -182,10 +182,10 @@ fun View.animateAlpha(alpha: Float, duration: Long = 300L, startDelay: Long = 0L
 
 /**
  * To set TranslationX animation
- * @param translationX - translationX value
- * @param duration - animation duration
- * @param startDelay - delay before start
- * @param interpolator - animation interpolator style
+ * @param translationX -> translationX value
+ * @param duration -> animation duration
+ * @param startDelay -> delay before start
+ * @param interpolator -> animation interpolator style
  *
  * @return this View
  * @see startAnimate to start animation
@@ -202,10 +202,10 @@ fun View.animateTranslationX(translationX: Float, duration: Long = 300L, startDe
 
 /**
  * To set TranslationY animation
- * @param translationY - translationY value
- * @param duration - animation duration
- * @param startDelay - delay before start
- * @param interpolator - animation interpolator style
+ * @param translationY -> translationY value
+ * @param duration -> animation duration
+ * @param startDelay -> delay before start
+ * @param interpolator -> animation interpolator style
  *
  * @return this View
  * @see startAnimate to start animation
@@ -222,10 +222,10 @@ fun View.animateTranslationY(translationY: Float, duration: Long = 300L, startDe
 
 /**
  * To set Rotation animation
- * @param rotation - Rotation value
- * @param duration - animation duration
- * @param startDelay - delay before start
- * @param interpolator - animation interpolator style
+ * @param rotation -> Rotation value
+ * @param duration -> animation duration
+ * @param startDelay -> delay before start
+ * @param interpolator -> animation interpolator style
  *
  * @return this View
  * @see startAnimate to start animation
@@ -242,10 +242,10 @@ fun View.animateRotation(rotation: Float, duration: Long = 300L, startDelay: Lon
 
 /**
  * To set ScaleX animation
- * @param scaleX - scaleX value
- * @param duration - animation duration
- * @param startDelay - delay before start
- * @param interpolator - animation interpolator style
+ * @param scaleX -> scaleX value
+ * @param duration -> animation duration
+ * @param startDelay -> delay before start
+ * @param interpolator -> animation interpolator style
  *
  * @return this View
  * @see startAnimate to start animation
@@ -262,10 +262,10 @@ fun View.animateScaleX(scaleX: Float, duration: Long = 300L, startDelay: Long = 
 
 /**
  * To set ScaleY animation
- * @param scaleY - scaleY value
- * @param duration - animation duration
- * @param startDelay - delay before start
- * @param interpolator - animation interpolator style
+ * @param scaleY -> scaleY value
+ * @param duration -> animation duration
+ * @param startDelay -> delay before start
+ * @param interpolator -> animation interpolator style
  *
  * @return this View
  * @see startAnimate to start animation
@@ -312,7 +312,7 @@ fun View.gone() {
 
 /**
  * To set margin to View
- * @param all - margin all side
+ * @param all -> margin all side
  */
 fun View.setMargin(all: Int) {
     (this.layoutParams as? MarginLayoutParams)?.setMargins(all)
@@ -320,10 +320,10 @@ fun View.setMargin(all: Int) {
 
 /**
  * To set margin to View
- * @param left - margin left
- * @param top - margin top
- * @param right - margin right
- * @param bottom - margin bottom
+ * @param left -> margin left
+ * @param top -> margin top
+ * @param right -> margin right
+ * @param bottom -> margin bottom
  */
 fun View.setMargin(left: Int = this.marginLeft, top: Int = this.marginTop, right: Int = this.marginRight, bottom: Int = this.marginBottom) {
     (this.layoutParams as? MarginLayoutParams)?.updateMargins(left, top, right, bottom)
