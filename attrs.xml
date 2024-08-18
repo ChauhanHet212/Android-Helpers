@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="rippleColor" format="color" />
+    <attr name="rippleOpacity" format="integer" />
+    <attr name="ripplePosition" format="enum">
+        <enum name="background" value="0"/>
+        <enum name="foreground" value="1"/>
+    </attr>
+    <attr name="cornerRadius" format="dimension" />
+    <attr name="topLeftCornerRadius" format="dimension" />
+    <attr name="topRightCornerRadius" format="dimension" />
+    <attr name="bottomLeftCornerRadius" format="dimension" />
+    <attr name="bottomRightCornerRadius" format="dimension" />
+
+    <declare-styleable name="ClickableLinearLayout">
+        <attr name="rippleColor" />
+        <attr name="rippleOpacity" />
+        <attr name="ripplePosition" />
+        <attr name="cornerRadius" />
+        <attr name="topLeftCornerRadius" />
+        <attr name="topRightCornerRadius" />
+        <attr name="bottomLeftCornerRadius" />
+        <attr name="bottomRightCornerRadius" />
+    </declare-styleable>
+
+    <declare-styleable name="ClickableRelativeLayout">
+        <attr name="rippleColor" />
+        <attr name="rippleOpacity" />
+        <attr name="ripplePosition" />
+        <attr name="cornerRadius" />
+        <attr name="topLeftCornerRadius" />
+        <attr name="topRightCornerRadius" />
+        <attr name="bottomLeftCornerRadius" />
+        <attr name="bottomRightCornerRadius" />
+    </declare-styleable>
+
+</resources>
