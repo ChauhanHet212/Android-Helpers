@@ -1,10 +1,18 @@
 package com.example.helper.extras
 
 import android.os.Build
+import android.webkit.MimeTypeMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 
 //-------------Coroutine----------------
@@ -171,4 +179,77 @@ fun whenApiLevel(vararg levelsAndBlocks: Pair<Int, () -> Unit>, elseBlock: () ->
     } else {
         elseBlock()
     }
+}
+
+
+//-------------File----------------
+/**
+ * Get mime type of file
+ *
+ * @param path -> path of file
+ * @return application/'fileType' like **application/pdf**
+ */
+fun getMimeType(path: String): String? {
+    var type: String? = null
+    val extension = MimeTypeMap.getFileExtensionFromUrl(path)
+    if (extension != null) {
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    }
+    return type
+}
+
+/**
+ * Get mime type of file
+ *
+ * @param file -> file
+ * @return application/'fileType' like **application/pdf**
+ */
+fun getMimeType(file: File): String? {
+    var type: String? = null
+    val extension = MimeTypeMap.getFileExtensionFromUrl(file.path)
+    if (extension != null) {
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    }
+    return type
+}
+
+/**
+ * Create zip of files
+ *
+ * @param files -> list of file paths to make a zip
+ * @param file ->  where it is stored
+ * @return file/folder path on successful process
+ */
+fun createZip(files: List<String>, file: File, bufferSize: Int = 2048): String? {
+    try {
+        var origin: BufferedInputStream
+        val dest = FileOutputStream(file)
+        val out = ZipOutputStream(
+            BufferedOutputStream(
+                dest)
+        )
+
+        val data = ByteArray(bufferSize)
+        for (i in files.indices) {
+            val fi = FileInputStream(files[i])
+            origin = BufferedInputStream(fi, bufferSize)
+
+            val entry = ZipEntry(files[i].substring(
+                files[i].lastIndexOf("/") + 1))
+            out.putNextEntry(entry)
+            val count: Int = origin.read(data, 0, bufferSize)
+
+            while (count != -1) {
+                out.write(data, 0, count)
+            }
+            origin.close()
+        }
+
+        out.close()
+        return file.toString()
+    } catch (ignored: Exception) {
+        ignored.printStackTrace()
+    }
+
+    return null
 }
