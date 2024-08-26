@@ -1,7 +1,12 @@
 package com.example.helper.extras
 
+import android.animation.Animator
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.animation.TimeInterpolator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.Activity
 import android.app.AppOpsManager
 import android.content.Context
@@ -10,17 +15,29 @@ import android.content.Intent.getIntent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Interpolator
+import android.graphics.Matrix
+import android.graphics.Paint
 import android.graphics.Point
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.text.format.DateUtils
 import android.util.DisplayMetrics
+import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
@@ -37,6 +54,8 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.animation.doOnEnd
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
@@ -45,23 +64,30 @@ import androidx.core.view.marginTop
 import androidx.core.view.setMargins
 import androidx.core.view.updateMargins
 import androidx.fragment.app.Fragment
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.animation.ArgbEvaluatorCompat
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.io.Serializable
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Collections
 import java.util.Date
+import kotlin.math.max
 
 
 //-------------Coroutine----------------
@@ -69,7 +95,7 @@ import java.util.Date
  * This is the Main thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun LifecycleOwner.mainThread(block: CoroutineScope.() -> Unit) {
+fun LifecycleOwner.lifeCycleMainThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.Main) { block() }
 }
 
@@ -77,7 +103,7 @@ fun LifecycleOwner.mainThread(block: CoroutineScope.() -> Unit) {
  * This is the IO thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun LifecycleOwner.ioThread(block: CoroutineScope.() -> Unit) {
+fun LifecycleOwner.lifeCycleIoThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.IO) { block() }
 }
 
@@ -85,7 +111,7 @@ fun LifecycleOwner.ioThread(block: CoroutineScope.() -> Unit) {
  * This is the Default thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun LifecycleOwner.defaultThread(block: CoroutineScope.() -> Unit) {
+fun LifecycleOwner.lifeCycleDefaultThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.Default) { block() }
 }
 
@@ -93,7 +119,7 @@ fun LifecycleOwner.defaultThread(block: CoroutineScope.() -> Unit) {
  * This is the Unconfined thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun LifecycleOwner.unconfinedThread(block: CoroutineScope.() -> Unit) {
+fun LifecycleOwner.lifeCycleUnconfinedThread(block: CoroutineScope.() -> Unit) {
     lifecycleScope.launch(Dispatchers.Unconfined) { block() }
 }
 
@@ -102,7 +128,7 @@ fun LifecycleOwner.unconfinedThread(block: CoroutineScope.() -> Unit) {
  * This is the Main thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun ViewModel.mainThread(block: CoroutineScope.() -> Unit) {
+fun ViewModel.viewModelMainThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.Main) { block() }
 }
 
@@ -110,7 +136,7 @@ fun ViewModel.mainThread(block: CoroutineScope.() -> Unit) {
  * This is the IO thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun ViewModel.ioThread(block: CoroutineScope.() -> Unit) {
+fun ViewModel.viewModelIoThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.IO) { block() }
 }
 
@@ -118,7 +144,7 @@ fun ViewModel.ioThread(block: CoroutineScope.() -> Unit) {
  * This is the Default thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun ViewModel.defaultThread(block: CoroutineScope.() -> Unit) {
+fun ViewModel.viewModelDefaultThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.Default) { block() }
 }
 
@@ -126,7 +152,7 @@ fun ViewModel.defaultThread(block: CoroutineScope.() -> Unit) {
  * This is the Unconfined thread coroutine scope for lifecycleOwner
  * @param block -> code block to run on this thread
  */
-fun ViewModel.unconfinedThread(block: CoroutineScope.() -> Unit) {
+fun ViewModel.viewModelUnconfinedThread(block: CoroutineScope.() -> Unit) {
     viewModelScope.launch(Dispatchers.Unconfined) { block() }
 }
 
@@ -343,6 +369,21 @@ fun View.gone() {
     this.visibility = View.GONE
 }
 
+val View.isVisible: Boolean
+    get() {
+        return this.visibility == View.VISIBLE
+    }
+
+val View.isGone: Boolean
+    get() {
+        return this.visibility == View.GONE
+    }
+
+val View.isInvisible: Boolean
+    get() {
+        return this.visibility == View.INVISIBLE
+    }
+
 
 /**
  * To set margin to View
@@ -363,6 +404,259 @@ fun View.setMargin(left: Int = this.marginLeft, top: Int = this.marginTop, right
     (this.layoutParams as? MarginLayoutParams)?.updateMargins(left, top, right, bottom)
 }
 
+fun View.setHeight(newValue: Int) {
+    val params = layoutParams
+    params?.let {
+        params.height = newValue
+        layoutParams = params
+    }
+}
+
+fun View.setWidth(newValue: Int) {
+    val params = layoutParams
+    params?.let {
+        params.width = newValue
+        layoutParams = params
+    }
+}
+
+fun View.setSize(width: Int, height: Int) {
+    val params = layoutParams
+    params?.let {
+        params.width = width
+        params.height = height
+        layoutParams = params
+    }
+}
+
+/**
+ *  View as bitmap.
+ */
+fun View.getBitmap(): Bitmap {
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    draw(canvas)
+    canvas.save()
+    return bitmap
+}
+
+/**
+ * Aligns to left of the parent in relative layout
+ */
+fun View.alignParentStart() {
+    val params = layoutParams as? RelativeLayout.LayoutParams
+
+    params?.apply {
+        addRule(RelativeLayout.ALIGN_PARENT_START)
+    }
+
+}
+
+/**
+ * Aligns to right of the parent in relative layout
+ */
+fun View.alignParentEnd() {
+    val params = layoutParams as? RelativeLayout.LayoutParams
+
+    params?.apply {
+        addRule(RelativeLayout.ALIGN_PARENT_END)
+    }
+
+}
+
+
+/**
+ * Aligns in the center of the parent in relative layout
+ */
+fun View.centerInParent() {
+    val params = layoutParams as? RelativeLayout.LayoutParams
+
+    params?.apply {
+        addRule(RelativeLayout.CENTER_IN_PARENT)
+    }
+
+}
+
+/**
+ * Aligns in the center horizontal of the parent in relative layout
+ */
+fun View.centerHorizontal() {
+    val params = layoutParams as? RelativeLayout.LayoutParams
+
+    params?.apply {
+        addRule(RelativeLayout.CENTER_HORIZONTAL)
+    }
+
+}
+
+/**
+ * Aligns in the center vertical of the parent in relative layout
+ */
+fun View.centerVertical() {
+    val params = layoutParams as? RelativeLayout.LayoutParams
+
+    params?.apply {
+        addRule(RelativeLayout.CENTER_VERTICAL)
+    }
+
+}
+
+/**
+ * Set weight to view in LinearLayout
+ */
+fun View.setWeight(weight: Float) {
+    val params = layoutParams as? LinearLayout.LayoutParams
+
+    params?.apply {
+        layoutParams = LinearLayout.LayoutParams(width, height, weight)
+    }
+}
+
+fun View.setOnScaleClickListener(onClick: (View) -> Unit) {
+    var isPressed = false
+
+    val scaleDown = ObjectAnimator.ofPropertyValuesHolder(
+        this,
+        PropertyValuesHolder.ofFloat("scaleX", 0.9f),
+        PropertyValuesHolder.ofFloat("scaleY", 0.9f)
+    )
+    scaleDown.duration = 100
+
+    val scaleUp = ObjectAnimator.ofPropertyValuesHolder(
+        this,
+        PropertyValuesHolder.ofFloat("scaleX", 1f),
+        PropertyValuesHolder.ofFloat("scaleY", 1f)
+    )
+    scaleUp.duration = 100
+
+    this.setOnTouchListener { v, event ->
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                isPressed = true
+                scaleDown.start()
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (isPressed && isPressedInsideView(event)) {
+                    performClick()
+                    onClick(this)
+
+                    scaleUp.start()
+                    isPressed = false
+                }
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (isPressed && !isPressedInsideView(event)) {
+                    isPressed = false
+                    scaleUp.start()
+                }
+            }
+        }
+        true
+    }
+}
+
+private fun View.isPressedInsideView(event: MotionEvent): Boolean {
+    val rect = Rect()
+    getGlobalVisibleRect(rect)
+    return rect.contains(event.rawX.toInt(), event.rawY.toInt())
+}
+
+fun View.visibilityChangeListener(onVisibility: (isVisible: Boolean) -> Unit) {
+    viewTreeObserver.addOnGlobalLayoutListener {
+        onVisibility(isVisible)
+    }
+}
+
+fun View.createCircularReveal(
+    revealDuration: Long = 1500L,
+    interpolator: TimeInterpolator = FastOutSlowInInterpolator(),
+    centerX: Int = width / 2,
+    centerY: Int = height / 2,
+    showAtEnd: Boolean = true,
+    isReverse: Boolean = false
+): Animator {
+
+    val radius = max(width, height).toFloat()
+    val startRadius = if (isReverse.not()) 0f else radius
+    val finalRadius = if (isReverse.not()) radius else 0f
+
+    val animator =
+        ViewAnimationUtils.createCircularReveal(this, centerX, centerY, startRadius, finalRadius).apply {
+            this.interpolator = interpolator
+            duration = revealDuration
+            doOnEnd {
+                if (showAtEnd) visible() else gone()
+            }
+            start()
+        }
+    return animator
+}
+
+fun View.createColoredCircularReveal(
+    revealDuration: Long = 1500L,
+    interpolator: TimeInterpolator = FastOutSlowInInterpolator(),
+    centerX: Int = width / 2,
+    centerY: Int = height / 2,
+    @ColorRes startColor: Int,
+    @ColorRes endColor: Int,
+    showAtEnd: Boolean = true,
+    isReverse: Boolean = false
+): Animator {
+
+    val radius = max(width, height).toFloat()
+    val startRadius = if (isReverse.not()) 0f else radius
+    val finalRadius = if (isReverse.not()) radius else 0f
+
+    val animator =
+        ViewAnimationUtils.createCircularReveal(this, centerX, centerY, startRadius, finalRadius).apply {
+            this.interpolator = interpolator
+            duration = revealDuration
+            doOnEnd {
+                if (showAtEnd) visible() else gone()
+            }
+            start()
+        }
+
+
+    val oldBackground = background
+    ValueAnimator().apply {
+        setIntValues(ContextCompat.getColor(context, startColor), ContextCompat.getColor(context, endColor))
+        setEvaluator(ArgbEvaluatorCompat())
+        addUpdateListener { valueAnimator -> setBackgroundColor((valueAnimator.animatedValue as Int)) }
+        doOnEnd { background = oldBackground }
+        duration = revealDuration
+
+        start()
+    }
+    return animator
+}
+
+@TargetApi(value = Build.VERSION_CODES.M)
+fun View.setSelectableItemForeground() {
+    foreground = ContextCompat.getDrawable(context, TypedValue().also { context.theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true) }.resourceId)
+}
+
+fun View.setSelectableItemBackground() {
+    setBackgroundResource(TypedValue().also { context.theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true) }.resourceId)
+}
+
+@TargetApi(value = Build.VERSION_CODES.M)
+fun View.setSelectableItemForegroundBorderless() {
+    foreground = ContextCompat.getDrawable(context, TypedValue().also { context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, it, true) }.resourceId)
+}
+
+fun View.setSelectableItemBackgroundBorderless() {
+    setBackgroundResource(TypedValue().also { context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, it, true) }.resourceId)
+}
+
+/**
+ * Applys given func to all child views
+ */
+inline fun ViewGroup.eachChild(func: (view: View) -> Unit) {
+    for (i in 0 until childCount) {
+        func(getChildAt(i))
+    }
+}
 
 //-------------Context----------------
 /**
@@ -940,3 +1234,83 @@ fun File.extension() = this.absolutePath.substringAfterLast(".")
 fun Any.toJson(): String = Gson().toJson(this)
 
 inline fun <reified T : Any> String.toData(): T = Gson().fromJson(this, T::class.java)
+
+
+//-------------Bitmap----------------
+fun Bitmap.toOutputStream(
+    compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+    quality: Int = 100
+): OutputStream {
+    val stream = ByteArrayOutputStream()
+    compress(compressFormat, quality, stream)
+    return stream
+}
+
+fun Bitmap.toInputStream(
+    compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+    quality: Int = 100
+): InputStream {
+    val stream = ByteArrayOutputStream()
+    compress(compressFormat, quality, stream)
+    val byteArray = stream.toByteArray()
+    return ByteArrayInputStream(byteArray)
+}
+
+@RequiresApi(26)
+fun Bitmap.toIcon(): Icon = Icon.createWithBitmap(this)
+
+fun Bitmap.toDrawable(resources: Resources) = BitmapDrawable(resources, this)
+
+fun Bitmap.toRoundCorner(radius: Float): Bitmap? {
+    val width = this.width
+    val height = this.height
+    val bitmap = Bitmap.createBitmap(width, height, this.config)
+    val paint = Paint()
+    val canvas = Canvas(bitmap)
+    val rect = Rect(0, 0, width, height)
+
+    paint.isAntiAlias = true
+    canvas.drawRoundRect(RectF(rect), radius, radius, paint)
+    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+    canvas.drawBitmap(this, rect, rect, paint)
+
+    return bitmap
+}
+
+/**
+ * Method to save Bitmap to specified file path.
+ */
+fun Bitmap.saveAsFile(path: String, format: Bitmap.CompressFormat, quality: Int) {
+    require(quality in 0..100) { "quality must be in 0 to 100" }
+    val f = File(path)
+    if (!f.exists()) {
+        f.createNewFile()
+    }
+    val stream = FileOutputStream(f)
+    compress(format, quality, stream)
+    stream.flush()
+    stream.close()
+}
+
+fun Bitmap.flipHorizontally(): Bitmap {
+    val matrix = Matrix()
+    matrix.preScale(1.0f, -1.0f)
+    return Bitmap.createBitmap(this, 0, 0, this.width, this.height, matrix, true)
+}
+
+fun Bitmap.flipVertically(): Bitmap {
+    val matrix = Matrix()
+    matrix.preScale(-1.0f, 1.0f)
+    return Bitmap.createBitmap(this, 0, 0, this.width, this.height, matrix, true)
+}
+
+/**
+ * Rotates a bitmap, creating a new bitmap.  Beware of memory allocations.
+ */
+fun Bitmap.rotate(degrees: Int): Bitmap {
+    val matrix = Matrix()
+
+    matrix.postRotate(degrees.toFloat())
+
+    return Bitmap.createBitmap(this, 0, 0, this.width, this.height, matrix, true)
+}
