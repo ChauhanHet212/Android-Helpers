@@ -1,11 +1,20 @@
 package com.example.helper.extras
 
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.webkit.MimeTypeMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -46,6 +55,39 @@ fun defaultThread(block: CoroutineScope.() -> Unit) {
  */
 fun unconfinedThread(block: CoroutineScope.() -> Unit) {
     CoroutineScope(Dispatchers.Unconfined).launch { block() }
+}
+
+
+/**
+ * This is the Global Main thread coroutine scope to use anywhere
+ * @param block -> code block to run on this thread
+ */
+fun globalMainThread(block: CoroutineScope.() -> Unit) {
+    GlobalScope.launch(Dispatchers.Main) { block() }
+}
+
+/**
+ * This is the Global IO thread coroutine scope to use anywhere
+ * @param block -> code block to run on this thread
+ */
+fun globalIoThread(block: CoroutineScope.() -> Unit) {
+    GlobalScope.launch(Dispatchers.IO) { block() }
+}
+
+/**
+ * This is the Global Default thread coroutine scope to use anywhere
+ * @param block -> code block to run on this thread
+ */
+fun globalDefaultThread(block: CoroutineScope.() -> Unit) {
+    GlobalScope.launch(Dispatchers.Default) { block() }
+}
+
+/**
+ * This is the Global Unconfined thread coroutine scope to use anywhere
+ * @param block -> code block to run on this thread
+ */
+fun globalUnconfinedThread(block: CoroutineScope.() -> Unit) {
+    GlobalScope.launch(Dispatchers.Unconfined) { block() }
 }
 
 
@@ -252,4 +294,58 @@ fun createZip(files: List<String>, file: File, bufferSize: Int = 2048): String? 
     }
 
     return null
+}
+
+
+//-------------Extras----------------
+fun getGradientDrawable(orientation: GradientDrawable.Orientation = GradientDrawable.Orientation.TOP_BOTTOM, radius: Float = 0f, vararg colors: Int) = GradientDrawable(orientation, colors).apply { cornerRadius = radius }
+
+
+fun createJsonObject(vararg pairs: Pair<String, Any>): JSONObject {
+    val jsonObject = JSONObject()
+    pairs.forEach { (key, value) ->
+        when (value) {
+            is String -> jsonObject.put(key, value)
+            is Int -> jsonObject.put(key, value)
+            is Long -> jsonObject.put(key, value)
+            is Double -> jsonObject.put(key, value)
+            is Boolean -> jsonObject.put(key, value)
+            is JSONArray -> jsonObject.put(key, value)
+            else -> throw UnsupportedOperationException("Unsupported type: ${value::class.java}")
+        }
+    }
+    return jsonObject
+}
+
+fun createJsonArray(vararg values: Any): JSONArray {
+    val jsonArray = JSONArray()
+    values.forEach { value ->
+        when (value) {
+            is String -> jsonArray.put(value)
+            is Int -> jsonArray.put(value)
+            is Long -> jsonArray.put(value)
+            is Double -> jsonArray.put(value)
+            is Boolean -> jsonArray.put(value)
+            is JSONObject -> jsonArray.put(value)
+            else -> throw UnsupportedOperationException("Unsupported type: ${value::class.java}")
+        }
+    }
+    return jsonArray
+}
+
+fun createMultipartBody(vararg pairs: Pair<String, Any>): MultipartBody {
+    val multipartBody = MultipartBody.Builder()
+    pairs.forEach { (key, value) ->
+        when (value) {
+            is String -> multipartBody.addFormDataPart(key, value)
+            is Int -> multipartBody.addFormDataPart(key, value.toString())
+            is Long -> multipartBody.addFormDataPart(key, value.toString())
+            is Double -> multipartBody.addFormDataPart(key, value.toString())
+            is Boolean -> multipartBody.addFormDataPart(key, value.toString())
+            is RequestBody -> multipartBody.addPart(value)
+            is File -> multipartBody.addFormDataPart(key, value.name, value.asRequestBody("application/octet-stream".toMediaTypeOrNull()))
+            else -> throw UnsupportedOperationException("Unsupported type: ${value::class.java}")
+        }
+    }
+    return multipartBody.build()
 }
